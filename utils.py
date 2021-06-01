@@ -2,35 +2,37 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import cnames as mcolors
-from matplotlib import cm
 
 
-def read_image():
-    # creating a image object
-    im = Image.open("im.jpg")
+def read_image(path):
+    im = Image.open(path)
     width, height = im.size
-    im_np = np.array(im.getdata())
-    im_np = im_np / 255  # normalization
-    return im_np, width, height
+    mode = im.mode
+    im_np = np.array(im.getdata()) / 255
+    shape = (height, width, im_np.shape[1])
+    return im_np, shape, mode
 
 
-def show_image(im):
-    im = im * 255
-    im = Image.fromarray(im.astype('uint8'), 'RGB')
-    im.show()
+def create_image(G, M):
+    return M[np.argmax(G, axis=1), :]
+
+
+def get_image(final_im, shape, mode):
+    final_im = Image.fromarray(np.uint8(final_im.reshape(shape)*255), mode)
+    return final_im
 
 
 def init(K, D):
-    # P, M , S
-    return np.random.rand(K), np.random.randn(K, D), np.random.rand(K)
+    # P,M ,S
+    return np.random.rand(K), np.random.randn(K, D), np.random.uniform(low=0.1, high=10, size=(K,))
 
 
 def initS(K):
-    return np.random.uniform(low=0.1, high=1, size=(K,))
+    return np.random.uniform(low=0.1, high=10, size=(K,))
 
 
 def error(x_true, x_r, N):
-    frobenius_norm = (np.sum(np.square(x_true - x_r)))
+    frobenius_norm = np.sum(np.square(x_true - x_r))
     return frobenius_norm / N
 
 
@@ -51,12 +53,12 @@ def plot(X, Minit):
     plt.show()
 
 
-def plot_costs(costs):
+def plot_likelihoods(costs):
     x = range(1, len(costs) + 1)
     y = costs
     plt.plot(x, y)
-    plt.ylabel('cost')
+    plt.ylabel('likelihood')
     plt.xlabel('iterations')
-    plt.title("Cost Function =")
+    plt.title("Likelihood Function")
     plt.xticks(x)
     plt.show()
