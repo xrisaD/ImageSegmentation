@@ -1,33 +1,31 @@
 import numpy as np
-import math
 from em import EM
 
 
 class EMImprovedVersion(EM):
 
     def computeN(self):
-        sub = (np.expand_dims(self.X, axis=1) - self.M) ** 2  # N*K*D
-        exp = - sub / (2 * (np.expand_dims(self.S, axis=1) ** 2))
+        sub = - (np.expand_dims(self.X, axis=1) - self.M) ** 2  # N*K*D
+        exp = sub / (2 * (np.expand_dims(self.S, axis=1) ** 2))
         e = np.exp(exp)
-        res = e / np.sqrt(2 * np.pi * (np.expand_dims(self.S, axis=1) ** 2))
-        res = np.sum(res, axis=-1)
+
+        res = e / np.sqrt(2 * np.pi * (np.expand_dims(self.S, axis=-1) ** 2))
+        res = np.prod(res, axis=-1)
 
         return res
 
     def likelihood(self):
-        return np.sum(np.log(np.sum(self.P * self.computeN(), axis=1)))
+        return np.sum(np.log(np.sum(self.P * self.computeN(), axis=-1)))
 
     def computeG(self):
-        num = self.P * self.computeN()
-        denom = np.expand_dims(np.sum(num, axis=1), axis=1)
-
+        num = self.computeN() * self.P
+        denom = np.expand_dims(np.sum(num, axis=-1), axis=-1)
         self.G = num / denom
 
     def computeM(self):
         G_T = np.transpose(self.G)
         num = G_T @ self.X
         denom = np.expand_dims(np.sum(G_T, axis=1), 1)
-
         self.M = num / denom
 
     def computeS(self):

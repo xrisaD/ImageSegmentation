@@ -1,4 +1,4 @@
-from utils import initS, init, plot_likelihoods
+from utils import initS, init
 import numpy as np
 
 
@@ -10,11 +10,13 @@ import numpy as np
 # G: N*K
 
 class EM:
-    def __init__(self, X, K, prints=False, test=False, P=None, M=None):
+    def __init__(self, X, K, maxIters=15, prints=False, test=False, P=None, M=None):
         # step 1: initialization
         self.K = K
         self.N, self.D = X.shape
         self.X = X  # N*D
+
+        self.maxIters = maxIters
 
         if not test:
             self.P, self.M, self.S = init(self.K, self.D)
@@ -29,9 +31,8 @@ class EM:
     def EM_algorithm(self):
         tol = 1e-6
         Lold = -np.inf
-        maxIters = 15
         Ls = []
-        for it in range(maxIters):
+        for it in range(self.maxIters):
             # step 2: E step
             self.computeG()
 
